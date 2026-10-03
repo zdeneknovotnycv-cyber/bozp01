@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-512.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BOZP obchůzka</title>
+<meta name="theme-color" content="#b45309">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BOZP">
+<!-- BOZP obchůzka v1.1 – Licence aplikace: Zdeněk Novotný. Samostatná stránka AI Workspace. Data zůstávají v telefonu (IndexedDB), na server se neposílá nic. -->
+<style>
+:root{
+  --bg:#f4f5f7;--card:#fff;--tx:#15181d;--mut:#5d6673;--bd:#d5dae1;--pri:#b45309;--priTx:#fff;
+  --s1:#1f8a4c;--s2:#f08c00;--s3:#d6322e;--err:#b42318;--ov:#f4f5f7;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#111316;--card:#1b1e23;--tx:#eceef1;--mut:#9aa3af;--bd:#343a44;--pri:#f59e0b;--priTx:#1a1200;--err:#ff8a80;--ov:#111316}
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{min-height:48px;padding:0 16px;border:1px solid var(--bd);border-radius:12px;background:var(--card);cursor:pointer;touch-action:manipulation}
+button:active{filter:brightness(.92)}
+button.pri{background:var(--pri);color:var(--priTx);border-color:transparent;font-weight:700}
+button.dng{color:var(--err);border-color:var(--err)}
+input,select,textarea{width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--card)}
+textarea{resize:vertical;min-height:110px}
+label{display:block;font-size:14px;color:var(--mut);margin:12px 0 4px}
+.hidden{display:none!important}
+.row{display:flex;gap:10px;align-items:center}
+.row>*{flex:1}
+.hint{font-size:13px;color:var(--mut);margin:6px 0}
+.err{color:var(--err);font-weight:600}
+
+#top{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));background:var(--card);border-bottom:1px solid var(--bd)}
+#top h1{font-size:18px;margin:0;flex:0 0 auto}
+#top select{flex:1;min-width:0}
+#top button{flex:0 0 auto;min-width:48px;padding:0 10px}
+#main{padding:12px 12px 120px;max-width:760px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px 14px;margin-bottom:12px}
+details.card>summary{font-weight:700;cursor:pointer;min-height:32px;display:flex;align-items:center}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+@media (max-width:520px){.hgrid{grid-template-columns:1fr}}
+#stats{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 12px;font-size:14px}
+.pill{display:inline-block;min-width:26px;text-align:center;padding:2px 9px;border-radius:999px;font-weight:700;font-size:14px}
+.sv1{background:var(--s1);color:#fff}.sv2{background:var(--s2);color:#111}.sv3{background:var(--s3);color:#fff}
+.item{display:flex;gap:12px;padding:10px;border:1px solid var(--bd);border-radius:14px;background:var(--card);margin-bottom:10px;border-left:8px solid var(--bd);cursor:pointer}
+.item.s1{border-left-color:var(--s1)}.item.s2{border-left-color:var(--s2)}.item.s3{border-left-color:var(--s3)}
+.item .th{flex:0 0 84px;height:84px;border-radius:10px;background:#0002;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:12px;text-align:center}
+.item .th img{width:100%;height:100%;object-fit:cover;display:block}
+.item .tx{flex:1;min-width:0}
+.item .meta{font-size:13px;color:var(--mut);margin-top:2px}
+.item .desc{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;word-break:break-word;margin-top:4px}
+.empty{text-align:center;color:var(--mut);padding:30px 10px}
+#lic{text-align:center;font-size:12px;color:var(--mut);opacity:.75;margin-top:18px}
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;gap:10px;padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--bd)}
+#bar button{min-height:56px;font-size:17px}
+#bar #bNew{flex:2}#bar #bRep{flex:1}
+
+.ov{position:fixed;inset:0;z-index:50;background:var(--ov);overflow:auto;-webkit-overflow-scrolling:touch}
+.ov .in{max-width:760px;margin:0 auto;padding:12px;padding-top:calc(12px + env(safe-area-inset-top));padding-bottom:calc(30px + env(safe-area-inset-bottom))}
+.ov h2{margin:4px 0 8px;font-size:20px}
+.photos{display:flex;gap:10px;overflow-x:auto;padding:4px 0 10px}
+.ph{position:relative;flex:0 0 120px;height:120px;border-radius:12px;overflow:hidden;border:1px solid var(--bd);background:#0002}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .x{position:absolute;top:4px;right:4px;width:34px;height:34px;min-height:0;padding:0;border-radius:50%;background:#000a;color:#fff;border:0;font-size:18px}
+.ph .ed{position:absolute;left:0;right:0;bottom:0;background:#000a;color:#fff;font-size:12px;text-align:center;padding:3px}
+.addph{flex:0 0 120px;height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;padding:4px;font-size:14px;line-height:1.2}
+.addph b{font-size:26px;font-weight:400}
+.sevs{display:flex;gap:10px}
+.sevs button{flex:1;min-height:64px;font-weight:700;font-size:20px;border:3px solid transparent;opacity:.55}
+.sevs button.on{opacity:1;border-color:var(--tx);box-shadow:0 0 0 2px var(--card) inset}
+.sevs .b1{background:var(--s1);color:#fff}.sevs .b2{background:var(--s2);color:#111}.sevs .b3{background:var(--s3);color:#fff}
+#sevTxt{font-size:14px;margin:6px 2px;min-height:20px}
+.btns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btns>button{flex:1;min-width:110px}
+.catrow{display:flex;gap:8px;margin-bottom:8px}
+.catrow button{flex:0 0 48px;padding:0}
+
+#an{background:#000;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+#an canvas{touch-action:none;display:block;background:#222;cursor:crosshair}
+#anBar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;padding:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom));background:#000c}
+#anBar button{flex:1;min-width:0;padding:0 6px;background:#2a2d33;color:#fff;border-color:#555}
+#anBar button.pri{background:#f59e0b;color:#1a1200}
+#anHint{position:absolute;top:calc(8px + env(safe-area-inset-top));left:0;right:0;text-align:center;color:#fff;font-size:14px;text-shadow:0 1px 3px #000;pointer-events:none}
+
+#modal{z-index:100;background:#0008;display:flex;align-items:center;justify-content:center;padding:20px}
+#modal .box{background:var(--card);border-radius:16px;padding:18px;max-width:420px;width:100%}
+#modal p{margin:0 0 16px;white-space:pre-wrap}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:120;background:#222;color:#fff;padding:12px 14px;border-radius:12px;text-align:center;font-weight:600}
+#toast.bad{background:#b42318}
+#repTools{position:sticky;top:0;z-index:5;display:flex;gap:8px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));background:var(--card);border-bottom:1px solid var(--bd)}
+#repTools button{flex:1;min-width:0;padding:0 6px}
+#repBody{padding:10px 0;background:#e9ebee}
+@media (prefers-color-scheme:dark){#repBody{background:#2a2d33}}
+#repBody .rp{box-shadow:0 1px 6px #0003}
+#banner{background:#fde7e7;color:#8a1c14;padding:10px 12px;font-weight:600;text-align:center}
+</style>
+<style id="repCss"></style>
+</head>
+<body>
+<div id="nojs" style="padding:16px;margin:12px;border:3px solid #b42318;border-radius:12px;background:#fff3f2;color:#8a1c14;font:16px/1.5 system-ui,sans-serif">
+<b>Aplikace se nespustila.</b><br>Pravděpodobně je soubor otevřený v náhledu (e-mail, Soubory, WhatsApp, aplikace Claude), který nespouští skripty.
+<br><b>Android:</b> otevři soubor v Chrome (Chrome → ⋮ → Stažené, nebo adresa <code>file:///sdcard/Download/bozp-offline.html</code>).
+<br><b>iPhone:</b> lokální soubor se v Safari většinou nespustí, použij adresu na serveru.
+</div>
+<script>window.addEventListener('error',function(e){var n=document.getElementById('nojs');if(n)n.insertAdjacentHTML('beforeend','<br><small>Chyba: '+String(e.message).replace(/</g,'&lt;')+' (řádek '+(e.lineno||'?')+')</small>');});</script>
+<div id="banner" class="hidden"></div>
+<header id="top">
+  <h1>BOZP</h1>
+  <select id="daySel" aria-label="Obchůzka"></select>
+  <button id="bDayNew" type="button" title="Nová obchůzka">＋ Den</button>
+  <button id="bSet" type="button" title="Nastavení" aria-label="Nastavení">⚙</button>
+</header>
+
+<div id="main">
+  <details class="card" id="hdrBox" open>
+    <summary>Hlavička obchůzky</summary>
+    <div class="hgrid" id="hdrFields"></div>
+  </details>
+  <div id="stats"></div>
+  <div id="list"></div>
+  <div id="lic">Licence aplikace: Zdeněk Novotný</div>
+</div>
+
+<div id="bar">
+  <button id="bNew" class="pri" type="button">＋ Nový nález</button>
+  <button id="bRep" type="button">Protokol</button>
+</div>
+
+<!-- Editor nálezu -->
+<div id="ed" class="ov hidden"><div class="in">
+  <h2 id="edTitle">Nový nález</h2>
+  <label>Fotky</label>
+  <div class="photos" id="edPhotos"></div>
+  <input id="fCam" type="file" accept="image/*" capture="environment" hidden>
+  <input id="fGal" type="file" accept="image/*" multiple hidden>
+  <label>Závažnost</label>
+  <div class="sevs" id="edSev"></div>
+  <div id="sevTxt" class="hint"></div>
+  <label for="edCat">Kategorie</label>
+  <select id="edCat"></select>
+  <label for="edPlace">Místo</label>
+  <input id="edPlace" maxlength="200" placeholder="např. hala 2, u lisu č. 4" autocomplete="off">
+  <label for="edText">Popis nálezu</label>
+  <textarea id="edText" placeholder="Co je špatně, co je třeba udělat…"></textarea>
+  <p class="hint">Diktování: klepni na mikrofon na klávesnici telefonu.</p>
+  <p id="edErr" class="err hidden"></p>
+  <div class="btns">
+    <button id="edCancel" type="button">Zrušit</button>
+    <button id="edDel" type="button" class="dng hidden">Smazat</button>
+    <button id="edSave" type="button" class="pri">Uložit nález</button>
+  </div>
+</div></div>
+
+<!-- Úprava fotky (šipky) -->
+<div id="an" class="ov hidden">
+  <div id="anHint">Přejeď prstem od začátku ke špičce šipky</div>
+  <canvas id="anCv"></canvas>
+  <div id="anBar">
+    <button id="anUndo" type="button">↶ Zpět</button>
+    <button id="anClear" type="button">Smazat vše</button>
+    <button id="anCancel" type="button">Zrušit</button>
+    <button id="anOk" type="button" class="pri">Hotovo</button>
+  </div>
+</div>
+
+<!-- Nastavení -->
+<div id="set" class="ov hidden"><div class="in">
+  <h2>Nastavení</h2>
+  <div class="card">
+    <label for="sFirm" style="margin-top:0">Název firmy (do protokolu)</label>
+    <input id="sFirm" maxlength="150">
+    <label>Pole hlavičky (názvy)</label>
+    <div id="sFields"></div>
+    <label>Závažnost – význam</label>
+    <div id="sSev"></div>
+    <label>Kategorie</label>
+    <div id="sCats"></div>
+    <div class="catrow"><input id="sCatNew" placeholder="Nová kategorie" maxlength="60"><button id="sCatAdd" type="button">＋</button></div>
+    <div class="btns"><button id="sCancel" type="button">Zavřít</button><button id="sSave" type="button" class="pri">Uložit nastavení</button></div>
+  </div>
+  <div class="card">
+    <strong>Data a záloha</strong>
+    <p class="hint" id="sInfo"></p>
+    <div class="btns">
+      <button id="sBackup" type="button">Záloha do souboru</button>
+      <button id="sRestore" type="button">Obnovit ze zálohy</button>
+    </div>
+    <input id="fRestore" type="file" accept=".json,application/json" hidden>
+    <div class="btns"><button id="sDelDay" type="button" class="dng">Smazat tuto obchůzku</button></div>
+    <p class="hint">Data jsou jen v tomto telefonu. Smazání dat prohlížeče je smaže – dělej zálohu a posílej si ji (e-mail, cloud).</p>
+  </div>
+  <div class="card">
+    <strong>Přidat na plochu</strong>
+    <p class="hint">Android (Chrome): ⋮ → „Přidat na plochu“. iPhone (Safari): Sdílet → „Přidat na plochu“. Fotoaparát funguje i v běžném prohlížeči.</p>
+  </div>
+</div></div>
+
+<!-- Protokol -->
+<div id="rep" class="ov hidden">
+  <div id="repTools">
+    <button id="rClose" type="button">Zavřít</button>
+    <button id="rHtml" type="button">Stáhnout HTML</button>
+    <button id="rPrint" type="button" class="pri">Tisk / PDF</button>
+  </div>
+  <div id="repBody"></div>
+</div>
+
+<div id="modal" class="ov hidden"><div class="box"><p id="mMsg"></p><div class="btns" style="margin-top:0"><button id="mNo" type="button"></button><button id="mYes" type="button" class="pri"></button></div></div></div>
+<div id="toast" class="hidden"></div>
+
+<script>
+'use strict';
+/* BOZP obchůzka v1.1 – Licence aplikace: Zdeněk Novotný */
+{ const n = document.getElementById('nojs'); if (n) n.remove(); }
+/* ====================== pomocné ====================== */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const nowStr = () => new Date().toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const dateStr = (t) => new Date(t).toLocaleDateString('cs-CZ');
+const ymd = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+let toastT;
+function toast(msg, bad) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = bad ? 'bad' : '';
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.add('hidden'), bad ? 5000 : 2200);
+}
+function ask(msg, yes = 'OK', no = 'Zrušit') {
+  return new Promise((res) => {
+    $('#mMsg').textContent = msg;
+    $('#mYes').textContent = yes;
+    const n = $('#mNo');
+    n.textContent = no || '';
+    n.classList.toggle('hidden', !no);
+    $('#modal').classList.remove('hidden');
+    const done = (v) => {
+      $('#modal').classList.add('hidden');
+      $('#mYes').onclick = $('#mNo').onclick = null;
+      res(v);
+    };
+    $('#mYes').onclick = () => done(true);
+    $('#mNo').onclick = () => done(false);
+  });
+}
+function show(id) { $(id).classList.remove('hidden'); }
+function hide(id) { $(id).classList.add('hidden'); }
+function banner(msg) { const b = $('#banner'); b.textContent = msg; b.classList.toggle('hidden', !msg); }
+
+/* ====================== úložiště (IndexedDB) ====================== */
+let idb = null, memMode = false;
+const mem = { walks: new Map(), findings: new Map(), meta: new Map() };
+const KEY = { walks: 'id', findings: 'id', meta: 'k' };
+
+function openDb() {
+  return new Promise((res, rej) => {
+    if (!window.indexedDB) return rej(new Error('IndexedDB není k dispozici'));
+    const r = indexedDB.open('bozp', 1);
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      d.createObjectStore('walks', { keyPath: 'id' });
+      d.createObjectStore('findings', { keyPath: 'id' }).createIndex('walk', 'walk');
+      d.createObjectStore('meta', { keyPath: 'k' });
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+    r.onblocked = () => rej(new Error('Databáze je blokovaná'));
+  });
+}
+function tx(store, mode, fn) {
+  return new Promise((res, rej) => {
+    let t;
+    try { t = idb.transaction(store, mode); } catch (e) { return rej(e); }
+    let out;
+    const rq = fn(t.objectStore(store));
+    if (rq) rq.onsuccess = () => { out = rq.result; };
+    t.oncomplete = () => res(out);
+    t.onerror = () => rej(t.error);
+    t.onabort = () => rej(t.error || new Error('Zápis přerušen'));
+  });
+}
+const dbAll = async (s) => (memMode ? [...mem[s].values()] : tx(s, 'readonly', (o) => o.getAll()));
+const dbGet = async (s, k) => (memMode ? mem[s].get(k) : tx(s, 'readonly', (o) => o.get(k)));
+const dbPut = async (s, v) => { if (memMode) { mem[s].set(v[KEY[s]], v); return; } await tx(s, 'readwrite', (o) => o.put(v)); };
+const dbDel = async (s, k) => { if (memMode) { mem[s].delete(k); return; } await tx(s, 'readwrite', (o) => o.delete(k)); };
+const dbByWalk = async (w) => (memMode ? [...mem.findings.values()].filter((f) => f.walk === w) : tx('findings', 'readonly', (o) => o.index('walk').getAll(IDBKeyRange.only(w))));
+const dbCount = async (w) => (memMode ? [...mem.findings.values()].filter((f) => f.walk === w).length : tx('findings', 'readonly', (o) => o.index('walk').count(IDBKeyRange.only(w))));
+const getMeta = async (k) => (await dbGet('meta', k))?.v;
+const setMeta = (k, v) => dbPut('meta', { k, v });
+
+/* ====================== nastavení a stav ====================== */
+const DEF = () => ({
+  firm: '',
+  fields: ['Datum', 'Provoz / úsek', 'Provedl', 'Doprovod', 'Směna / počasí', 'Poznámka'],
+  sev: {
+    1: 'Drobné – odstranit při nejbližší příležitosti',
+    2: 'Závažné – odstranit do 7 dnů',
+    3: 'Vážné nebezpečí – odstranit okamžitě',
+  },
+  cats: ['Stroje a zařízení', 'Elektro', 'Požární ochrana', 'Únikové cesty', 'Skladování a regály', 'Chemické látky', 'OOPP', 'Pořádek a čistota', 'Doprava a VZV', 'Ostatní'],
+});
+let S = DEF();
+let walks = [];
+let walk = null;       // aktuální obchůzka
+let finds = [];        // nálezy aktuální obchůzky
+
+async function loadSettings() {
+  const saved = await getMeta('settings');
+  const d = DEF();
+  if (saved && typeof saved === 'object') {
+    S = {
+      firm: String(saved.firm ?? ''),
+      fields: d.fields.map((x, i) => String(saved.fields?.[i] ?? x) || x),
+      sev: { 1: saved.sev?.[1] || d.sev[1], 2: saved.sev?.[2] || d.sev[2], 3: saved.sev?.[3] || d.sev[3] },
+      cats: Array.isArray(saved.cats) && saved.cats.length ? saved.cats.map(String) : d.cats,
+    };
+  } else S = d;
+}
+function sevShort(n) { return String(S.sev[n] || '').split(/\s[–-]\s/)[0] || `Stupeň ${n}`; }
+
+async function newWalk(copyFrom) {
+  const base = ymd();
+  let id = base, n = 2;
+  while (walks.some((w) => w.id === id)) id = `${base}-${n++}`;
+  const fields = ['', '', '', '', '', ''];
+  fields[0] = new Date().toLocaleDateString('cs-CZ');
+  if (copyFrom) for (const i of [1, 2, 3, 4]) fields[i] = copyFrom.fields[i] || '';
+  const w = { id, created: Date.now(), fields };
+  await dbPut('walks', w);
+  walks.push(w);
+  return w;
+}
+async function selectWalk(id) {
+  await flushWalk();
+  walk = walks.find((w) => w.id === id) || walks[walks.length - 1];
+  await setMeta('last', walk.id).catch(() => {});
+  finds = await dbByWalk(walk.id);
+  await renderAll();
+}
+
+/* ====================== fotky ====================== */
+function loadImg(src) {
+  return new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = () => rej(new Error('Fotku se nepodařilo načíst'));
+    i.src = src;
+  });
+}
+function readDataUrl(file) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error('Soubor nelze přečíst')); r.readAsDataURL(file); });
+}
+async function fileToPhoto(file, maxW = 1600) {
+  const im = await loadImg(await readDataUrl(file));
+  const s = Math.min(1, maxW / Math.max(im.naturalWidth, im.naturalHeight));
+  const w = Math.round(im.naturalWidth * s), h = Math.round(im.naturalHeight * s);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  c.getContext('2d').drawImage(im, 0, 0, w, h);
+  return c.toDataURL('image/jpeg', 0.8);
+}
+// Šipka: žlutá s tmavým okrajem, rozměry podle šířky obrázku
+function drawArrows(x, w, h, arrows) {
+  const lw = Math.max(4, w * 0.012);
+  for (const a of arrows) {
+    const x1 = a[0] * w, y1 = a[1] * h, x2 = a[2] * w, y2 = a[3] * h;
+    const ang = Math.atan2(y2 - y1, x2 - x1);
+    const hl = lw * 5, hw = lw * 2.6;
+    const bx = x2 - Math.cos(ang) * hl * 0.8, by = y2 - Math.sin(ang) * hl * 0.8;
+    const head = () => {
+      x.beginPath();
+      x.moveTo(x2, y2);
+      x.lineTo(x2 - Math.cos(ang) * hl + Math.cos(ang + Math.PI / 2) * hw, y2 - Math.sin(ang) * hl + Math.sin(ang + Math.PI / 2) * hw);
+      x.lineTo(x2 - Math.cos(ang) * hl + Math.cos(ang - Math.PI / 2) * hw, y2 - Math.sin(ang) * hl + Math.sin(ang - Math.PI / 2) * hw);
+      x.closePath();
+    };
+    x.lineCap = 'round'; x.lineJoin = 'round';
+    x.strokeStyle = '#000'; x.lineWidth = lw + 4;
+    x.beginPath(); x.moveTo(x1, y1); x.lineTo(bx, by); x.stroke();
+    head(); x.stroke();
+    x.strokeStyle = '#ffd400'; x.lineWidth = lw;
+    x.beginPath(); x.moveTo(x1, y1); x.lineTo(bx, by); x.stroke();
+    x.fillStyle = '#ffd400'; head(); x.fill();
+  }
+}
+const phCache = new Map();
+async function renderPhoto(p, maxW, q = 0.85) {
+  if (!p.arrows?.length) return p.orig;
+  const key = `${p.id}|${maxW}|${JSON.stringify(p.arrows)}`;
+  if (phCache.has(key)) return phCache.get(key);
+  const im = await loadImg(p.orig);
+  const s = Math.min(1, maxW / im.naturalWidth);
+  const w = Math.round(im.naturalWidth * s), h = Math.round(im.naturalHeight * s);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  x.drawImage(im, 0, 0, w, h);
+  drawArrows(x, w, h, p.arrows);
+  const out = c.toDataURL('image/jpeg', q);
+  if (phCache.size > 80) phCache.clear();
+  phCache.set(key, out);
+  return out;
+}
+async function thumbInto(el, p) {
+  try { const img = document.createElement('img'); img.alt = ''; img.src = await renderPhoto(p, 280, 0.75); el.textContent = ''; el.appendChild(img); }
+  catch { el.textContent = 'fotka'; }
+}
+
+/* ====================== hlavní obrazovka ====================== */
+async function renderDaySel() {
+  const sel = $('#daySel');
+  const counts = await Promise.all(walks.map((w) => dbCount(w.id).catch(() => 0)));
+  sel.innerHTML = '';
+  [...walks].map((w, i) => ({ w, n: counts[i] })).sort((a, b) => b.w.created - a.w.created).forEach(({ w, n }) => {
+    const o = document.createElement('option');
+    o.value = w.id;
+    o.textContent = `${dateStr(w.created)} (${n})`;
+    sel.appendChild(o);
+  });
+  sel.value = walk.id;
+}
+function renderHeader() {
+  const box = $('#hdrFields');
+  box.innerHTML = '';
+  S.fields.forEach((name, i) => {
+    const d = document.createElement('div');
+    const l = document.createElement('label');
+    l.textContent = name;
+    const inp = document.createElement('input');
+    inp.value = walk.fields[i] || '';
+    inp.maxLength = 200;
+    inp.autocomplete = 'off';
+    inp.addEventListener('input', () => { walk.fields[i] = inp.value; walkDirty(); });
+    d.append(l, inp);
+    box.appendChild(d);
+  });
+}
+let walkT = null;
+function walkDirty() { clearTimeout(walkT); walkT = setTimeout(() => flushWalk(), 500); }
+async function flushWalk() {
+  if (walkT === null && !walk) return;
+  clearTimeout(walkT); walkT = null;
+  if (!walk) return;
+  try { await dbPut('walks', walk); } catch (e) { toast('Hlavičku se nepodařilo uložit: ' + e.message, true); }
+}
+function renderStats() {
+  const c = { 1: 0, 2: 0, 3: 0 };
+  finds.forEach((f) => { c[f.sev] = (c[f.sev] || 0) + 1; });
+  $('#stats').innerHTML = `<strong>Nálezy: ${finds.length}</strong>` +
+    [3, 2, 1].map((n) => `<span class="pill sv${n}" title="${esc(S.sev[n])}">${n}: ${c[n] || 0}</span>`).join('');
+}
+function sortedFinds() {
+  const ci = (c) => { const i = S.cats.indexOf(c); return i < 0 ? 999 : i; };
+  return [...finds].sort((a, b) => b.sev - a.sev || ci(a.cat) - ci(b.cat) || a.created - b.created);
+}
+function renderList() {
+  const box = $('#list');
+  box.innerHTML = '';
+  if (!finds.length) { box.innerHTML = '<div class="empty">Zatím žádný nález.<br>Klepni na „＋ Nový nález“.</div>'; return; }
+  [...finds].sort((a, b) => b.created - a.created).forEach((f) => {
+    const d = document.createElement('div');
+    d.className = `item s${f.sev}`;
+    d.innerHTML = `<div class="th">${f.photos?.length ? '…' : 'bez fotky'}</div><div class="tx"><div><span class="pill sv${f.sev}">${f.sev}</span> <strong>${esc(f.cat || '—')}</strong></div><div class="meta">${esc(f.place || '')}${f.place ? ' · ' : ''}${esc(f.time || '')}${f.photos?.length > 1 ? ` · ${f.photos.length} fotky` : ''}</div><div class="desc">${esc(f.text || '')}</div></div>`;
+    d.addEventListener('click', () => openEditor(f));
+    box.appendChild(d);
+    if (f.photos?.length) thumbInto($('.th', d), f.photos[0]);
+  });
+}
+async function renderAll() { await renderDaySel(); renderHeader(); renderStats(); renderList(); }
+
+/* ====================== editor nálezu ====================== */
+let cur = null, curIsNew = false, draftT = null;
+
+function blank() { return { id: uid(), walk: walk.id, sev: 0, cat: '', place: '', text: '', photos: [], created: Date.now(), time: nowStr() }; }
+function hasContent(f) { return !!(f.sev || f.text.trim() || f.place.trim() || f.photos.length); }
+
+function openEditor(f) {
+  curIsNew = !f;
+  cur = f ? JSON.parse(JSON.stringify(f)) : blank();
+  if (!cur.cat) cur.cat = S.cats[0] || '';
+  fillEditor();
+  show('#ed');
+  $('#ed').scrollTop = 0;
+}
+function fillEditor() {
+  $('#edTitle').textContent = curIsNew ? 'Nový nález' : 'Upravit nález';
+  $('#edDel').classList.toggle('hidden', curIsNew);
+  $('#edErr').classList.add('hidden');
+  const cs = $('#edCat');
+  cs.innerHTML = '';
+  const cats = [...S.cats];
+  if (cur.cat && !cats.includes(cur.cat)) cats.push(cur.cat);
+  cats.forEach((c) => { const o = document.createElement('option'); o.value = o.textContent = c; cs.appendChild(o); });
+  cs.value = cur.cat;
+  $('#edPlace').value = cur.place;
+  $('#edText').value = cur.text;
+  renderSevBtns();
+  renderEdPhotos();
+}
+function renderSevBtns() {
+  const box = $('#edSev');
+  box.innerHTML = '';
+  [1, 2, 3].forEach((n) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = `b${n}${cur.sev === n ? ' on' : ''}`;
+    b.textContent = String(n);
+    b.addEventListener('click', () => { cur.sev = n; renderSevBtns(); draftDirty(); });
+    box.appendChild(b);
+  });
+  $('#sevTxt').textContent = cur.sev ? S.sev[cur.sev] : 'Vyber závažnost 1 až 3.';
+}
+function renderEdPhotos() {
+  const box = $('#edPhotos');
+  box.innerHTML = '';
+  cur.photos.forEach((p, i) => {
+    const d = document.createElement('div');
+    d.className = 'ph';
+    d.innerHTML = '<span class="ed">✎ šipka</span>';
+    const x = document.createElement('button');
+    x.type = 'button'; x.className = 'x'; x.textContent = '✕'; x.setAttribute('aria-label', 'Odebrat fotku');
+    x.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (await ask('Odebrat tuto fotku?', 'Odebrat')) { cur.photos.splice(i, 1); renderEdPhotos(); draftDirty(); }
+    });
+    d.appendChild(x);
+    d.addEventListener('click', () => openAnnot(p));
+    box.appendChild(d);
+    thumbInto(d, p).then(() => { d.appendChild(x); const s = document.createElement('span'); s.className = 'ed'; s.textContent = '✎ šipka'; d.appendChild(s); });
+  });
+  for (const [id, label, ic] of [['fCam', 'Vyfotit', '📷'], ['fGal', 'Z galerie', '🖼']]) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'addph';
+    b.innerHTML = `<b>${ic}</b>${label}`;
+    b.addEventListener('click', () => $('#' + id).click());
+    box.appendChild(b);
+  }
+}
+async function addFiles(files) {
+  let bad = 0;
+  for (const f of files) {
+    try { cur.photos.push({ id: uid(), orig: await fileToPhoto(f), arrows: [] }); }
+    catch { bad++; }
+  }
+  renderEdPhotos();
+  draftDirty();
+  if (bad) toast(`Nepodařilo se načíst ${bad} fotek. Zkus jiný formát (JPEG).`, true);
+  else if (files.length) toast('Fotka přidána – klepni na ni pro nakreslení šipky');
+}
+function syncForm() { cur.cat = $('#edCat').value; cur.place = $('#edPlace').value; cur.text = $('#edText').value; }
+function draftDirty() { clearTimeout(draftT); draftT = setTimeout(saveDraft, 600); }
+async function saveDraft() {
+  clearTimeout(draftT); draftT = null;
+  if (!cur || $('#ed').classList.contains('hidden')) return;
+  syncForm();
+  try { await setMeta('draft', hasContent(cur) ? { f: cur, isNew: curIsNew } : null); } catch { /* koncept je jen pojistka */ }
+}
+async function clearDraft() { clearTimeout(draftT); draftT = null; try { await setMeta('draft', null); } catch { /* nic */ } }
+
+async function saveFinding() {
+  syncForm();
+  const err = $('#edErr');
+  if (!cur.sev) { err.textContent = 'Vyber závažnost 1, 2 nebo 3.'; err.classList.remove('hidden'); return; }
+  if (!cur.text.trim() && !cur.photos.length) { err.textContent = 'Přidej fotku nebo popis nálezu.'; err.classList.remove('hidden'); return; }
+  err.classList.add('hidden');
+  cur.walk = walk.id;
+  const b = $('#edSave');
+  b.disabled = true;
+  try {
+    await dbPut('findings', cur);
+    const back = await dbGet('findings', cur.id);   // ověření, že je zápis opravdu uložený
+    if (!back || (back.photos || []).length !== cur.photos.length) throw new Error('Kontrola po uložení selhala');
+  } catch (e) {
+    b.disabled = false;
+    err.textContent = 'NEPODAŘILO SE ULOŽIT: ' + (e.message || e) + '. Nález zůstává rozepsaný – zkus to znovu, případně smaž staré obchůzky nebo udělej zálohu.';
+    err.classList.remove('hidden');
+    return;
+  }
+  b.disabled = false;
+  const i = finds.findIndex((f) => f.id === cur.id);
+  if (i >= 0) finds[i] = cur; else finds.push(cur);
+  await clearDraft();
+  hide('#ed');
+  cur = null;
+  await renderAll();
+  toast('Nález uložen');
+}
+async function cancelEditor() {
+  syncForm();
+  if (hasContent(cur) && (curIsNew || JSON.stringify(cur) !== JSON.stringify(finds.find((f) => f.id === cur.id)))) {
+    if (!(await ask('Zahodit neuložené změny?', 'Zahodit', 'Zpět k nálezu'))) return;
+  }
+  await clearDraft();
+  hide('#ed');
+  cur = null;
+}
+async function deleteFinding() {
+  if (!(await ask('Opravdu smazat tento nález včetně fotek?', 'Smazat'))) return;
+  try { await dbDel('findings', cur.id); } catch (e) { toast('Smazání selhalo: ' + e.message, true); return; }
+  finds = finds.filter((f) => f.id !== cur.id);
+  await clearDraft();
+  hide('#ed');
+  cur = null;
+  await renderAll();
+  toast('Nález smazán');
+}
+
+/* ====================== úprava fotky – šipky ====================== */
+const an = { p: null, im: null, arrows: [], cur: null, w: 0, h: 0 };
+async function openAnnot(p) {
+  try { an.im = await loadImg(p.orig); } catch (e) { toast(e.message, true); return; }
+  an.p = p; an.arrows = (p.arrows || []).map((a) => a.slice()); an.cur = null;
+  show('#an');
+  layoutAnnot();
+}
+function layoutAnnot() {
+  const cv = $('#anCv');
+  const maxW = window.innerWidth, maxH = window.innerHeight - 76;
+  const s = Math.min(maxW / an.im.naturalWidth, maxH / an.im.naturalHeight);
+  an.w = Math.max(50, Math.floor(an.im.naturalWidth * s));
+  an.h = Math.max(50, Math.floor(an.im.naturalHeight * s));
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(an.w * dpr); cv.height = Math.round(an.h * dpr);
+  cv.style.width = an.w + 'px'; cv.style.height = an.h + 'px';
+  paintAnnot();
+}
+function paintAnnot() {
+  const cv = $('#anCv'), x = cv.getContext('2d');
+  x.drawImage(an.im, 0, 0, cv.width, cv.height);
+  drawArrows(x, cv.width, cv.height, an.cur ? [...an.arrows, an.cur] : an.arrows);
+}
+function annPos(e) {
+  const r = $('#anCv').getBoundingClientRect();
+  return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))];
+}
+(() => {
+  const cv = $('#anCv');
+  cv.addEventListener('pointerdown', (e) => { e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch { /* nic */ } const [x, y] = annPos(e); an.cur = [x, y, x, y]; paintAnnot(); });
+  cv.addEventListener('pointermove', (e) => { if (!an.cur) return; e.preventDefault(); const [x, y] = annPos(e); an.cur[2] = x; an.cur[3] = y; paintAnnot(); });
+  const end = (e) => {
+    if (!an.cur) return;
+    const [x, y] = annPos(e); an.cur[2] = x; an.cur[3] = y;
+    const len = Math.hypot((an.cur[2] - an.cur[0]) * an.w, (an.cur[3] - an.cur[1]) * an.h);
+    if (len > 24) an.arrows.push(an.cur.map((n) => Math.round(n * 10000) / 10000));
+    an.cur = null; paintAnnot();
+  };
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', () => { an.cur = null; paintAnnot(); });
+  window.addEventListener('resize', () => { if (!$('#an').classList.contains('hidden')) layoutAnnot(); });
+})();
+
+/* ====================== protokol ====================== */
+const REPORT_CSS = `
+.rp{font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#111;background:#fff;max-width:190mm;margin:0 auto;padding:8mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rp *{box-sizing:border-box}
+.rp h1{font-size:22px;margin:0 0 2px}
+.rp h2{font-size:16px;margin:16px 0 6px;border-bottom:2px solid #111;padding-bottom:2px}
+.rp .firm{color:#444;margin-bottom:10px}
+.rp table{border-collapse:collapse;width:100%}
+.rp td,.rp th{border:1px solid #888;padding:4px 7px;text-align:left;vertical-align:top}
+.rp th{background:#e9e9e9}
+.rp td.lb{width:22%;background:#f2f2f2;font-weight:600}
+.rp td.n,.rp th.n{text-align:center;width:11%}
+.rp tr.tot td{font-weight:700;background:#f2f2f2}
+.rp .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-weight:700}
+.rp .sv1{background:#1f8a4c;color:#fff}.rp .sv2{background:#f08c00;color:#111}.rp .sv3{background:#d6322e;color:#fff}
+.rp .leg{font-size:12px;color:#333;margin-top:6px}
+.rp .fd{border:1px solid #888;border-left:9px solid #888;padding:8px 10px;margin:10px 0;break-inside:avoid;page-break-inside:avoid}
+.rp .fd.s1{border-left-color:#1f8a4c}.rp .fd.s2{border-left-color:#f08c00}.rp .fd.s3{border-left-color:#d6322e}
+.rp .fh{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rp .fm{font-size:12px;color:#444;margin-top:2px}
+.rp .ft{margin-top:5px;white-space:pre-wrap;word-break:break-word}
+.rp .fp{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.rp .fp img{max-width:calc(50% - 3px);max-height:78mm;object-fit:contain;border:1px solid #aaa;background:#fafafa}
+.rp .fp.one img{max-width:100%;max-height:92mm}
+.rp .lic{margin-top:14px;text-align:right;font-size:10px;color:#777}
+.rp .sign{display:flex;gap:30px;margin-top:30px;break-inside:avoid}
+.rp .sign div{flex:1;border-top:1px solid #111;padding-top:3px;font-size:12px}
+@page{size:A4;margin:10mm}
+`;
+$('#repCss').textContent = REPORT_CSS + `
+@media print{
+  html,body{background:#fff!important;height:auto!important;overflow:visible!important}
+  body>*:not(#rep){display:none!important}
+  #rep{position:static!important;overflow:visible!important;background:#fff!important;display:block!important}
+  #repTools{display:none!important}
+  #repBody{background:#fff!important;padding:0!important}
+  #repBody .rp{box-shadow:none!important;max-width:none!important;padding:0!important}
+}`;
+
+async function buildReport() {
+  const list = sortedFinds();
+  const catsUsed = [...S.cats.filter((c) => list.some((f) => f.cat === c)), ...[...new Set(list.map((f) => f.cat))].filter((c) => !S.cats.includes(c))];
+  const cnt = (c, s) => list.filter((f) => f.cat === c && f.sev === s).length;
+  let h = `<div class="rp"><h1>Protokol z obchůzky BOZP</h1><div class="firm">${esc(S.firm)}</div>`;
+  h += '<table>';
+  for (let r = 0; r < 3; r++) {
+    h += '<tr>';
+    for (const i of [r * 2, r * 2 + 1]) h += `<td class="lb">${esc(S.fields[i])}</td><td>${esc(walk.fields[i] || '')}</td>`;
+    h += '</tr>';
+  }
+  h += '</table><h2>Souhrn nálezů</h2>';
+  if (!list.length) h += '<p>Při obchůzce nebyly zaznamenány žádné nálezy.</p>';
+  else {
+    h += '<table><tr><th>Kategorie</th>' + [1, 2, 3].map((n) => `<th class="n"><span class="pill sv${n}">${n}</span></th>`).join('') + '<th class="n">Celkem</th></tr>';
+    for (const c of catsUsed) h += `<tr><td>${esc(c || '—')}</td>${[1, 2, 3].map((n) => `<td class="n">${cnt(c, n) || ''}</td>`).join('')}<td class="n"><b>${list.filter((f) => f.cat === c).length}</b></td></tr>`;
+    h += `<tr class="tot"><td>Celkem</td>${[1, 2, 3].map((n) => `<td class="n">${list.filter((f) => f.sev === n).length}</td>`).join('')}<td class="n">${list.length}</td></tr></table>`;
+    h += '<div class="leg">' + [3, 2, 1].map((n) => `<b>${n}</b> = ${esc(S.sev[n])}`).join(' &nbsp;|&nbsp; ') + '</div>';
+    h += '<h2>Nálezy (od nejzávažnějších)</h2>';
+    let k = 0;
+    for (const f of list) {
+      k++;
+      const imgs = [];
+      for (const p of f.photos || []) { try { imgs.push(await renderPhoto(p, 1100, 0.85)); } catch { /* fotka se vynechá */ } }
+      h += `<div class="fd s${f.sev}"><div class="fh"><b>č. ${k}</b><span class="pill sv${f.sev}">${f.sev}</span><b>${esc(f.cat || '—')}</b></div>`;
+      h += `<div class="fm">${esc(f.place || '')}${f.place ? ' · ' : ''}${esc(f.time || '')} · ${esc(S.sev[f.sev] || '')}</div>`;
+      if (f.text) h += `<div class="ft">${esc(f.text)}</div>`;
+      if (imgs.length) h += `<div class="fp${imgs.length === 1 ? ' one' : ''}">${imgs.map((s) => `<img src="${s}" alt="">`).join('')}</div>`;
+      h += '</div>';
+    }
+  }
+  h += '<div class="sign"><div>Provedl (podpis)</div><div>Převzal / vedoucí (podpis)</div></div><div class="lic">Licence aplikace: Zdeněk Novotný</div></div>';
+  return h;
+}
+let repHtml = '';
+async function openReport() {
+  await flushWalk();
+  const b = $('#bRep'); b.disabled = true; b.textContent = 'Připravuji…';
+  try { repHtml = await buildReport(); }
+  catch (e) { toast('Protokol se nepodařilo vytvořit: ' + (e.message || e), true); return; }
+  finally { b.disabled = false; b.textContent = 'Protokol'; }
+  $('#repBody').innerHTML = repHtml;
+  show('#rep');
+  $('#rep').scrollTop = 0;
+}
+function download(name, blob) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+}
+function downloadReport() {
+  const doc = `<!doctype html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Protokol BOZP ${esc(walk.fields[0] || walk.id)}</title><style>body{margin:0;background:#fff}${REPORT_CSS}</style></head><body>${repHtml}</body></html>`;
+  download(`bozp-protokol-${walk.id}.html`, new Blob([doc], { type: 'text/html;charset=utf-8' }));
+}
+
+/* ====================== nastavení UI ====================== */
+let catEdit = [];
+function openSettings() {
+  $('#sFirm').value = S.firm;
+  const f = $('#sFields'); f.innerHTML = '';
+  S.fields.forEach((n, i) => { const inp = document.createElement('input'); inp.value = n; inp.maxLength = 60; inp.dataset.i = i; inp.style.marginBottom = '8px'; inp.setAttribute('aria-label', 'Pole ' + (i + 1)); f.appendChild(inp); });
+  const s = $('#sSev'); s.innerHTML = '';
+  [1, 2, 3].forEach((n) => { const r = document.createElement('div'); r.className = 'catrow'; r.innerHTML = `<span class="pill sv${n}" style="flex:0 0 34px;align-self:center">${n}</span>`; const inp = document.createElement('input'); inp.value = S.sev[n]; inp.maxLength = 120; inp.dataset.n = n; r.appendChild(inp); s.appendChild(r); });
+  catEdit = S.cats.map((c) => ({ orig: c, name: c }));
+  renderCatEdit();
+  storageInfo();
+  show('#set');
+  $('#set').scrollTop = 0;
+}
+function renderCatEdit() {
+  const box = $('#sCats'); box.innerHTML = '';
+  catEdit.forEach((c, i) => {
+    const r = document.createElement('div'); r.className = 'catrow';
+    const inp = document.createElement('input'); inp.value = c.name; inp.maxLength = 60;
+    inp.addEventListener('input', () => { c.name = inp.value; });
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = '✕'; b.setAttribute('aria-label', 'Smazat kategorii');
+    b.addEventListener('click', () => { catEdit.splice(i, 1); renderCatEdit(); });
+    r.append(inp, b); box.appendChild(r);
+  });
+}
+async function saveSettings() {
+  const cats = catEdit.map((c) => ({ ...c, name: c.name.trim() })).filter((c) => c.name);
+  if (!cats.length) { toast('Musí zůstat aspoň jedna kategorie.', true); return; }
+  const ns = {
+    firm: $('#sFirm').value.trim(),
+    fields: [...$('#sFields').querySelectorAll('input')].map((i, k) => i.value.trim() || DEF().fields[k]),
+    sev: {},
+    cats: [...new Set(cats.map((c) => c.name))],
+  };
+  $('#sSev').querySelectorAll('input').forEach((i) => { ns.sev[i.dataset.n] = i.value.trim() || DEF().sev[i.dataset.n]; });
+  try {
+    await setMeta('settings', ns);
+    const ren = cats.filter((c) => c.orig !== c.name && c.orig != null);
+    if (ren.length) {
+      const all = await dbAll('findings');
+      for (const f of all) { const r = ren.find((x) => x.orig === f.cat); if (r) { f.cat = r.name; await dbPut('findings', f); } }
+      finds = await dbByWalk(walk.id);
+    }
+  } catch (e) { toast('Nastavení se nepodařilo uložit: ' + e.message, true); return; }
+  S = ns;
+  hide('#set');
+  await renderAll();
+  toast('Nastavení uloženo');
+}
+async function storageInfo() {
+  let t = `Obchůzek: ${walks.length}. `;
+  try {
+    const e = await navigator.storage?.estimate?.();
+    if (e?.usage != null) t += `Využito ${(e.usage / 1048576).toFixed(1)} MB. `;
+    const p = await navigator.storage?.persisted?.();
+    if (p === true) t += 'Trvalé úložiště: ano.'; else if (p === false) t += 'Trvalé úložiště: nepotvrzeno.';
+  } catch { /* nic */ }
+  if (memMode) t += ' POZOR: ukládání do telefonu nefunguje, data zmizí po zavření!';
+  $('#sInfo').textContent = t;
+}
+async function backup() {
+  try {
+    await flushWalk();
+    const data = { app: 'bozp', version: 1, exported: new Date().toISOString(), settings: S, walks: await dbAll('walks'), findings: await dbAll('findings') };
+    download(`bozp-zaloha-${ymd()}.json`, new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    toast(`Záloha vytvořena (${data.walks.length} obchůzek, ${data.findings.length} nálezů)`);
+  } catch (e) { toast('Záloha selhala: ' + (e.message || e), true); }
+}
+async function restore(file) {
+  try {
+    const d = JSON.parse(await file.text());
+    if (d?.app !== 'bozp' || !Array.isArray(d.walks) || !Array.isArray(d.findings)) throw new Error('Toto není záloha BOZP obchůzky.');
+    if (!(await ask(`Načíst ze zálohy ${d.walks.length} obchůzek a ${d.findings.length} nálezů? Stejné záznamy se přepíší, ostatní zůstanou.`, 'Načíst'))) return;
+    for (const w of d.walks) if (w?.id && Array.isArray(w.fields)) await dbPut('walks', w);
+    for (const f of d.findings) if (f?.id && f.walk) await dbPut('findings', f);
+    if (d.settings) await setMeta('settings', d.settings);
+    await init(true);
+    hide('#set');
+    toast('Záloha načtena');
+  } catch (e) { toast('Obnovení selhalo: ' + (e.message || e), true); }
+}
+async function deleteDay() {
+  if (!(await ask(`Smazat obchůzku ${dateStr(walk.created)} včetně ${finds.length} nálezů? Nelze vrátit – nejdřív udělej zálohu.`, 'Smazat'))) return;
+  try {
+    for (const f of await dbByWalk(walk.id)) await dbDel('findings', f.id);
+    await dbDel('walks', walk.id);
+    walks = walks.filter((w) => w.id !== walk.id);
+    if (!walks.length) await newWalk();
+    walk = null;
+    hide('#set');
+    await selectWalk(walks[walks.length - 1].id);
+    toast('Obchůzka smazána');
+  } catch (e) { toast('Smazání selhalo: ' + e.message, true); }
+}
+
+/* ====================== události a start ====================== */
+$('#bNew').addEventListener('click', () => openEditor(null));
+$('#bRep').addEventListener('click', openReport);
+$('#bSet').addEventListener('click', openSettings);
+$('#bDayNew').addEventListener('click', async () => {
+  if (!(await ask('Založit novou obchůzku (nový den)? Hlavička se předvyplní z této.', 'Založit'))) return;
+  try { const w = await newWalk(walk); await selectWalk(w.id); toast('Nová obchůzka založena'); } catch (e) { toast('Nepodařilo se: ' + e.message, true); }
+});
+$('#daySel').addEventListener('change', (e) => selectWalk(e.target.value));
+$('#edSave').addEventListener('click', saveFinding);
+$('#edCancel').addEventListener('click', cancelEditor);
+$('#edDel').addEventListener('click', deleteFinding);
+['#edCat', '#edPlace', '#edText'].forEach((s) => $(s).addEventListener('input', draftDirty));
+$('#fCam').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; addFiles(f); });
+$('#fGal').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; addFiles(f); });
+$('#anUndo').addEventListener('click', () => { an.arrows.pop(); paintAnnot(); });
+$('#anClear').addEventListener('click', () => { an.arrows = []; paintAnnot(); });
+$('#anCancel').addEventListener('click', () => { hide('#an'); an.p = null; });
+$('#anOk').addEventListener('click', () => { an.p.arrows = an.arrows; hide('#an'); an.p = null; renderEdPhotos(); draftDirty(); });
+$('#sCancel').addEventListener('click', () => hide('#set'));
+$('#sSave').addEventListener('click', saveSettings);
+$('#sCatAdd').addEventListener('click', () => { const v = $('#sCatNew').value.trim(); if (!v) return; catEdit.push({ orig: null, name: v }); $('#sCatNew').value = ''; renderCatEdit(); });
+$('#sBackup').addEventListener('click', backup);
+$('#sRestore').addEventListener('click', () => $('#fRestore').click());
+$('#fRestore').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) restore(f); });
+$('#sDelDay').addEventListener('click', deleteDay);
+$('#rClose').addEventListener('click', () => hide('#rep'));
+$('#rPrint').addEventListener('click', () => window.print());
+$('#rHtml').addEventListener('click', downloadReport);
+document.addEventListener('visibilitychange', () => { if (document.hidden) { saveDraft(); flushWalk(); } });
+window.addEventListener('pagehide', () => { saveDraft(); flushWalk(); });
+window.addEventListener('error', (e) => toast('Chyba: ' + (e.message || 'neznámá'), true));
+window.addEventListener('unhandledrejection', (e) => toast('Chyba: ' + (e.reason?.message || e.reason || 'neznámá'), true));
+
+async function init(reload) {
+  if (!reload) {
+    try { idb = await openDb(); }
+    catch (e) { memMode = true; banner('POZOR: ukládání do telefonu nefunguje (' + (e.message || e) + '). Nepoužívej anonymní režim. Data po zavření zmizí – dělej zálohu!'); }
+    try { navigator.storage?.persist?.(); } catch { /* nic */ }
+  }
+  await loadSettings();
+  walks = await dbAll('walks');
+  if (!walks.length) await newWalk();
+  walks.sort((a, b) => a.created - b.created);
+  const last = await getMeta('last');
+  const today = walks.filter((w) => w.id.startsWith(ymd()));
+  walk = null;
+  await selectWalk(reload ? (last && walks.some((w) => w.id === last) ? last : walks[walks.length - 1].id) : (today.length ? today[today.length - 1].id : last && walks.some((w) => w.id === last) ? last : walks[walks.length - 1].id));
+  if (!reload) {
+    const dr = await getMeta('draft');
+    if (dr?.f && hasContent(dr.f)) {
+      if (await ask('Máš rozepsaný nález, který nebyl uložen. Pokračovat v něm?', 'Pokračovat', 'Zahodit')) {
+        const w = walks.find((x) => x.id === dr.f.walk);
+        if (w && w.id !== walk.id) await selectWalk(w.id);
+        curIsNew = dr.isNew; cur = dr.f; fillEditor(); show('#ed');
+      } else await clearDraft();
+    }
+  }
+}
+init().catch((e) => { banner('Aplikaci se nepodařilo spustit: ' + (e.message || e)); });
+
+</script>
+</body>
+</html>

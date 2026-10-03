@@ -1,0 +1,17 @@
+{
+ "name": "Bozp01",
+ "short_name": "Bozp01",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#ff0a0a",
+ "theme_color": "#ff0a0a",
+ "icons": [
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  }
+ ]
+}

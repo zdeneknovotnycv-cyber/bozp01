@@ -1,0 +1,24 @@
+WEBOVÁ VERZE APLIKACE „Bozp01“ (bez instalace, funguje na iPhonu i Androidu)
+
+1) NAHRÁNÍ NA WEB
+   Obsah tohoto balíčku (všechny soubory vedle sebe, ne složku v složce) nahraj na libovolný web s adresou https://.
+   Nejjednodušší a zdarma je GitHub Pages:
+   - Na github.com založ nový repozitář (např. "bozp01") a nastav ho jako veřejný.
+   - Klikni „Add file“ → „Upload files“ a přetáhni sem všechny soubory z balíčku. Potvrď „Commit changes“.
+   - V repozitáři otevři Settings → Pages, jako zdroj zvol větev main a složku / (root). Uložit.
+   - Za minutu až dvě je aplikace na adrese https://TVOJE-JMENO.github.io/NAZEV-REPOZITARE/
+   Pozor: veřejný repozitář vidí každý. Do aplikace nedávej hesla, klíče ani osobní údaje.
+
+2) PŘIDÁNÍ NA PLOCHU TELEFONU
+   iPhone (Safari): otevři adresu → tlačítko Sdílet (čtverec se šipkou) → „Přidat na plochu“ → Přidat.
+   Android (Chrome): otevři adresu → menu ⋮ → „Přidat na plochu“ nebo „Instalovat aplikaci“.
+   Na ploše je pak ikona, aplikace se otevře na celou obrazovku bez lišty prohlížeče.
+
+3) AKTUALIZACE
+   Až aplikaci upravíš, vytvoř balíček znovu, nahraj soubory a přepiš staré. Telefon si novou verzi stáhne sám při dalším spuštění s internetem
+   (případně aplikaci zavři a otevři ještě jednou).
+
+POZNÁMKY
+   - Aplikace funguje i bez internetu (po prvním otevření se uloží do telefonu), pokud sama nepotřebuje internet.
+   - iPhone vyžaduje adresu https://. Adresa typu http://192.168… na plochu jako plnohodnotná aplikace nejde.
+   - Na iPhonu může systém data aplikace (např. uložená v prohlížeči) po delší době nepoužívání smazat. Důležitá data si exportuj.
